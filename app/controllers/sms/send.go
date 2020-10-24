@@ -51,10 +51,13 @@ func validSendParams(ctx *gin.Context) (string, *rsp.Error) {
 
 	// 验证手机号是否合法
 	_, err := validator.New(map[string][]string{
+		// 数据，传入的是[]string，如{"18622222","19122232323"}
 		"mobile": {mobile},
 	}, map[string]string{
+		// 验证规则
 		"mobile": "mobile",
 	}, map[string]string{
+		// 错误提示
 		"mobile": "手机号码格式不正确",
 	})
 

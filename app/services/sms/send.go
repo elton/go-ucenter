@@ -13,6 +13,7 @@ import (
 func PostCode(mobile string) *rsp.Error {
 	code := generateCode()
 
+	// 云片短信平台 API-KEY
 	client := ypclnt.New("ee89935b41b8d4262b4c56e2594dfd49")
 	param := ypclnt.NewParam(2)
 	param[ypclnt.MOBILE] = mobile
