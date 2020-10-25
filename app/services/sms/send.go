@@ -1,13 +1,46 @@
 package sms
 
 import (
+	"context"
+	"errors"
 	"math/rand"
 	"strconv"
 	"time"
 
+	"ucenter/app"
+	"ucenter/app/utils/crypto"
+
 	"github.com/apptut/rsp"
+	"github.com/go-redis/redis/v8"
 	ypclnt "github.com/yunpian/yunpian-go-sdk/sdk"
 )
+
+var ctx = context.Background()
+var redisClinet *redis.Client
+var err error
+
+// UpdateSMSCache 更新SMS发送记录缓存
+func UpdateSMSCache(ip string, mobile string) error {
+	redisKey := "sms:" + crypto.MD5(ip+mobile)
+
+	if redisClinet, err = app.InitRedis(); err != nil {
+		return errors.New("连接Redis出错")
+	} else if err = redisClinet.Set(ctx, redisKey, true, time.Minute*1).Err(); err != nil {
+		return errors.New("添加失败")
+	}
+
+	return nil
+}
+
+// SendEnable 验证发送频率
+func SendEnable(ip string, mobile string) bool {
+	redisKey := "sms:" + crypto.MD5(ip+mobile)
+	redisClinet, _ = app.InitRedis()
+	if err = redisClinet.Get(ctx, redisKey).Err(); err != nil {
+		return err == redis.Nil
+	}
+	return false
+}
 
 // PostCode 发送验证码
 func PostCode(mobile string) *rsp.Error {

@@ -25,12 +25,18 @@ import (
 // Send 发送验证码
 func Send(ctx *gin.Context) {
 	// 获取用户IP
-	// ip := ctx.ClientIP()
+	ip := ctx.ClientIP()
 
 	// 传入参数验证
 	mobile, err := validSendParams(ctx)
 	if err != nil {
 		rsp.JsonErr(ctx, err)
+		return
+	}
+
+	// 获取验证发送频率
+	if !sms.SendEnable(ip, mobile) {
+		rsp.JsonErr(ctx, "发送频率过快")
 		return
 	}
 
@@ -40,6 +46,9 @@ func Send(ctx *gin.Context) {
 		rsp.JsonErr(ctx, err)
 		return
 	}
+
+	// 更新频率控制
+	sms.UpdateSMSCache(ip, mobile)
 
 	rsp.JsonOk(ctx)
 
