@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -12,9 +13,16 @@ var redisServer *redis.Client
 // InitRedis 获得Redis实例
 func InitRedis() (*redis.Client, error) {
 	redisServer := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:               "localhost:6379",
+		Password:           "", // no password set
+		DB:                 0,  // use default DB
+		DialTimeout:        10 * time.Second,
+		ReadTimeout:        30 * time.Second,
+		WriteTimeout:       30 * time.Second,
+		PoolSize:           2,
+		PoolTimeout:        30 * time.Second,
+		IdleTimeout:        500 * time.Millisecond,
+		IdleCheckFrequency: 500 * time.Millisecond,
 	})
 	// 检测心跳
 	pong, err := redisServer.Ping(context.Background()).Result()
