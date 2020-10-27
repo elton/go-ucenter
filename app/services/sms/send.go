@@ -31,9 +31,7 @@ var err error
 func UpdateSMSCache(ip string, mobile string) error {
 	redisKey := "sms:" + crypto.MD5(ip+mobile)
 
-	if redisClinet, err = app.InitRedis(); err != nil {
-		return errors.New("连接Redis出错")
-	} else if err = redisClinet.Set(ctx, redisKey, true, time.Minute*1).Err(); err != nil {
+	if err = app.GetRedis().Set(ctx, redisKey, true, time.Minute*1).Err(); err != nil {
 		return errors.New("添加失败")
 	}
 
@@ -43,8 +41,7 @@ func UpdateSMSCache(ip string, mobile string) error {
 // SendEnable 验证发送频率
 func SendEnable(ip string, mobile string) bool {
 	redisKey := "sms:" + crypto.MD5(ip+mobile)
-	redisClinet, _ = app.InitRedis()
-	if err = redisClinet.Get(ctx, redisKey).Err(); err != nil {
+	if err = app.GetRedis().Get(ctx, redisKey).Err(); err != nil {
 		return err == redis.Nil
 	}
 	return false
