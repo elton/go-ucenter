@@ -19,7 +19,7 @@ func InitRedis() (*redis.Client, error) {
 		DialTimeout:        10 * time.Second,
 		ReadTimeout:        30 * time.Second,
 		WriteTimeout:       30 * time.Second,
-		PoolSize:           2,
+		PoolSize:           10,
 		PoolTimeout:        30 * time.Second,
 		IdleTimeout:        500 * time.Millisecond,
 		IdleCheckFrequency: 500 * time.Millisecond,
