@@ -61,6 +61,10 @@ func PostCode(mobile string) *rsp.Error {
 	if r.Code != ypclnt.SUCC {
 		return rsp.NewErrMsg(r.Msg)
 	}
+
+	// 保存验证码，供注册接口使用
+	app.GetRedis().Set(ctx, "reg:"+mobile, code, time.Minute*30)
+
 	return nil
 }
 

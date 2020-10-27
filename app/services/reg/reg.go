@@ -9,14 +9,15 @@ import (
 	"github.com/apptut/validator"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
+
+
 
 // SaveData 保存表单数据
 func SaveData(ctx *gin.Context) *rsp.Error {
 	password, err := bcrypt.GenerateFromPassword([]byte(ctx.PostForm("password")), 10)
 	model := models.User{
-		UserName: ctx.PostForm("username"),
+		Username: ctx.PostForm("username"),
 		Mobile:   ctx.PostForm("mobile"),
 		Password: string(password),
 	}
@@ -32,21 +33,23 @@ func CheckUser(ctx *gin.Context) *rsp.Error {
 	username := ctx.PostForm("username")
 	mobile := ctx.PostForm("mobile")
 
-	var model models.User
-	err := app.GetDB().Find(&model, "username=? or mobile=?", username, mobile).Error
-	if err != nil && err == gorm.ErrRecordNotFound {
-		return nil
+	var user models.User
+	err := app.GetDB().Find(&user, "username=? OR mobile=?", username, mobile).Error
+	if err == nil && user.Username != "" {
+		return rsp.NewErrMsg("User already exists.")
 	}
-	return rsp.NewErrMsg("User already exists.")
+
+	return nil
+
 }
 
 // CheckCode 手机验证码核对
 func CheckCode(ctx *gin.Context) *rsp.Error {
-	ctx := context.Background()
-	model := ctx.PostForm("model")
+	ctxRedis := context.Background()
+	mobile := ctx.PostForm("mobile")
 	code := ctx.PostForm("code")
 
-	cachedCode, err := app.GetRedis().Get(ctx, "reg:"+mobile).Result()
+	cachedCode, err := app.GetRedis().Get(ctxRedis, "reg:"+mobile).Result()
 	if err != nil {
 		return rsp.NewErr(err)
 	}
@@ -59,13 +62,17 @@ func CheckCode(ctx *gin.Context) *rsp.Error {
 
 // Valid 验证表单
 func Valid(ctx *gin.Context) *rsp.Error {
+	var user models.User
+
+	ctx.Bind(&user)
+
 	_, err := validator.New(map[string][]string{
 		"username": {ctx.PostForm("username")},
 		"mobile":   {ctx.PostForm("mobile")},
 		"password": {ctx.PostForm("password")},
 		"code":     {ctx.PostForm("code")},
 	}, map[string]string{
-		"username": "regex:^[\\w_]{6,20}$",
+		"username": "regex:^[a-zA-Z0-9_-]{5,20}$",
 		"mobile":   "mobile",
 		"password": "regex:^[\\S]{6,20}$",
 		"code":     "regex:^[0-9]{4}$",

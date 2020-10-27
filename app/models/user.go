@@ -1,12 +1,13 @@
-Package models
+package models
 
 import (
 	"gorm.io/gorm"
 )
 
+// User 用户模型
 type User struct {
 	gorm.Model
-	UserName string
-	Mobile string
+	Username string
+	Mobile   string
 	Password string
 }
