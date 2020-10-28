@@ -11,8 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
-
 // SaveData 保存表单数据
 func SaveData(ctx *gin.Context) *rsp.Error {
 	password, err := bcrypt.GenerateFromPassword([]byte(ctx.PostForm("password")), 10)
@@ -62,21 +60,24 @@ func CheckCode(ctx *gin.Context) *rsp.Error {
 
 // Valid 验证表单
 func Valid(ctx *gin.Context) *rsp.Error {
-	var user models.User
+	var (
+		reg models.PostReg
+		err error
+	)
 
-	ctx.Bind(&user)
-
-	_, err := validator.New(map[string][]string{
-		"username": {ctx.PostForm("username")},
-		"mobile":   {ctx.PostForm("mobile")},
-		"password": {ctx.PostForm("password")},
-		"code":     {ctx.PostForm("code")},
-	}, map[string]string{
-		"username": "regex:^[a-zA-Z0-9_-]{5,20}$",
-		"mobile":   "mobile",
-		"password": "regex:^[\\S]{6,20}$",
-		"code":     "regex:^[0-9]{4}$",
-	})
+	if ctx.ShouldBind(&reg) == nil {
+		_, err = validator.New(map[string][]string{
+			"username": {reg.Username},
+			"mobile":   {reg.Mobile},
+			"password": {reg.Password},
+			"code":     {reg.Code},
+		}, map[string]string{
+			"username": "regex:^[a-zA-Z0-9_-]{5,20}$",
+			"mobile":   "mobile",
+			"password": "regex:^[\\S]{6,20}$",
+			"code":     "regex:^[0-9]{4}$",
+		})
+	}
 
 	if err != nil {
 		return rsp.NewErr(err)
